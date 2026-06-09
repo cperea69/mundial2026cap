@@ -1,0 +1,733 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Predicciones Mundial 2026 — Informe Técnico</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@400;600;700;800;900&family=Barlow:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --blue:   #0057FF;
+    --blue2:  #003DBF;
+    --blue3:  #001F6E;
+    --elec:   #00AAFF;
+    --black:  #0A0A0A;
+    --gray:   #1C1C1C;
+    --mid:    #555;
+    --light:  #F5F7FA;
+    --white:  #FFFFFF;
+    --red:    #E63946;
+    --green:  #2DCB6B;
+  }
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  html { scroll-behavior: smooth; }
+  body {
+    font-family: 'Barlow', sans-serif;
+    background: var(--white);
+    color: var(--black);
+    font-size: 15px;
+    line-height: 1.6;
+  }
+
+  /* ── NAV ─────────────────────────────────────────────────────────── */
+  nav {
+    position: sticky; top: 0; z-index: 100;
+    background: var(--black);
+    display: flex; align-items: center; gap: 0;
+    padding: 0 2rem;
+    border-bottom: 3px solid var(--blue);
+  }
+  nav .brand {
+    font-family: 'Barlow Condensed', sans-serif;
+    font-weight: 900; font-size: 1.1rem;
+    color: var(--white); text-transform: uppercase;
+    letter-spacing: 2px; padding: 1rem 2rem 1rem 0;
+    border-right: 1px solid #333; margin-right: 1.5rem;
+  }
+  nav a {
+    color: #aaa; text-decoration: none; font-size: 0.78rem;
+    text-transform: uppercase; letter-spacing: 1px;
+    padding: 1rem 0.75rem; transition: color .2s;
+    font-weight: 600;
+  }
+  nav a:hover { color: var(--elec); }
+
+  /* ── HERO ─────────────────────────────────────────────────────────── */
+  .hero {
+    background: var(--black);
+    padding: 5rem 2rem 4rem;
+    text-align: center;
+    position: relative; overflow: hidden;
+  }
+  .hero::before {
+    content: '';
+    position: absolute; inset: 0;
+    background: radial-gradient(ellipse 70% 60% at 50% 80%, rgba(0,87,255,.25) 0%, transparent 70%);
+  }
+  .hero-eyebrow {
+    font-family: 'Barlow Condensed', sans-serif;
+    font-size: .85rem; letter-spacing: 4px;
+    text-transform: uppercase; color: var(--elec);
+    margin-bottom: 1rem; position: relative;
+  }
+  .hero h1 {
+    font-family: 'Barlow Condensed', sans-serif;
+    font-weight: 900; font-size: clamp(2.8rem, 7vw, 5.5rem);
+    color: var(--white); line-height: 1;
+    text-transform: uppercase; position: relative;
+    letter-spacing: -1px;
+  }
+  .hero h1 span { color: var(--blue); }
+  .hero-sub {
+    color: #888; margin-top: 1.2rem; font-size: .95rem; position: relative;
+  }
+  .hero-pills {
+    display: flex; gap: .75rem; justify-content: center;
+    flex-wrap: wrap; margin-top: 2.5rem; position: relative;
+  }
+  .pill {
+    background: #111; border: 1px solid #333;
+    border-radius: 2px; padding: .45rem 1.1rem;
+    font-size: .78rem; color: #bbb; text-transform: uppercase;
+    letter-spacing: 1.5px; font-family: 'Barlow Condensed', sans-serif;
+    font-weight: 700;
+  }
+  .pill.blue { background: var(--blue); border-color: var(--blue); color: #fff; }
+
+  /* ── SECTIONS ─────────────────────────────────────────────────────── */
+  section { padding: 5rem 0; }
+  section:nth-child(odd) { background: var(--white); }
+  section:nth-child(even) { background: var(--light); }
+  .container { max-width: 1100px; margin: 0 auto; padding: 0 2rem; }
+  .section-label {
+    font-family: 'Barlow Condensed', sans-serif;
+    font-size: .75rem; letter-spacing: 4px; text-transform: uppercase;
+    color: var(--blue); font-weight: 700; margin-bottom: .75rem;
+  }
+  h2 {
+    font-family: 'Barlow Condensed', sans-serif;
+    font-weight: 800; font-size: clamp(1.8rem, 4vw, 2.6rem);
+    text-transform: uppercase; line-height: 1.05;
+    margin-bottom: 1.5rem;
+  }
+  h3 {
+    font-family: 'Barlow Condensed', sans-serif;
+    font-weight: 700; font-size: 1.35rem;
+    text-transform: uppercase; margin-bottom: .6rem;
+  }
+  p { color: #333; max-width: 72ch; margin-bottom: 1rem; }
+
+  /* ── KPI STRIP ───────────────────────────────────────────────────── */
+  .kpi-strip {
+    display: grid; grid-template-columns: repeat(auto-fit, minmax(160px,1fr));
+    gap: 1px; background: #e0e0e0;
+    border: 1px solid #e0e0e0; margin: 2.5rem 0;
+  }
+  .kpi {
+    background: var(--white); padding: 1.6rem 1.2rem; text-align: center;
+  }
+  .kpi .val {
+    font-family: 'Barlow Condensed', sans-serif;
+    font-size: 2.8rem; font-weight: 900;
+    color: var(--blue); line-height: 1;
+  }
+  .kpi .lbl {
+    font-size: .72rem; text-transform: uppercase; letter-spacing: 1.5px;
+    color: var(--mid); margin-top: .4rem;
+  }
+
+  /* ── MODEL CARDS ────────────────────────────────────────────────── */
+  .model-grid {
+    display: grid; grid-template-columns: repeat(auto-fit, minmax(230px,1fr));
+    gap: 1.5rem; margin-top: 2rem;
+  }
+  .model-card {
+    border: 2px solid #e8e8e8;
+    padding: 1.5rem;
+    position: relative;
+    transition: border-color .2s;
+  }
+  .model-card:hover { border-color: var(--blue); }
+  .model-tag {
+    display: inline-block;
+    font-family: 'Barlow Condensed', sans-serif;
+    font-weight: 900; font-size: .95rem;
+    color: var(--white); background: var(--blue);
+    padding: .2rem .7rem; margin-bottom: .9rem;
+    letter-spacing: 1px;
+  }
+  .model-card.champion .model-tag { background: var(--black); }
+  .model-card.champion { border-color: var(--black); }
+  .model-card h3 { font-size: 1.1rem; margin-bottom: .5rem; }
+  .model-card p { font-size: .87rem; color: #555; max-width: none; }
+  .tag-row { display: flex; gap: .5rem; flex-wrap: wrap; margin-top: .9rem; }
+  .tag {
+    font-size: .7rem; padding: .2rem .55rem;
+    border: 1px solid; font-family: 'Barlow Condensed', sans-serif;
+    font-weight: 700; letter-spacing: 1px; text-transform: uppercase;
+  }
+  .tag.green  { border-color: var(--green); color: var(--green); }
+  .tag.red    { border-color: var(--red);   color: var(--red); }
+  .tag.blue   { border-color: var(--blue);  color: var(--blue); }
+
+  /* ── CHARTS ────────────────────────────────────────────────────── */
+  .chart-wrap {
+    background: var(--white); border: 1px solid #e8e8e8;
+    padding: 2rem; margin-top: 1.5rem; position: relative;
+  }
+  .chart-title {
+    font-family: 'Barlow Condensed', sans-serif;
+    font-weight: 700; font-size: 1rem;
+    text-transform: uppercase; letter-spacing: 2px;
+    color: var(--mid); margin-bottom: 1.2rem;
+  }
+  canvas { max-height: 420px; }
+
+  /* ── M2 TABLE ───────────────────────────────────────────────────── */
+  .m2-table-wrap { overflow-x: auto; margin-top: 1.5rem; }
+  table {
+    width: 100%; border-collapse: collapse;
+    font-size: .88rem;
+  }
+  th {
+    background: var(--black); color: var(--white);
+    font-family: 'Barlow Condensed', sans-serif;
+    font-weight: 700; text-transform: uppercase;
+    letter-spacing: 1.5px; padding: .75rem 1rem;
+    text-align: left; font-size: .8rem;
+  }
+  td {
+    padding: .65rem 1rem; border-bottom: 1px solid #ebebeb;
+    vertical-align: middle;
+  }
+  tr:hover td { background: #f0f5ff; }
+  .rank-num {
+    font-family: 'Barlow Condensed', sans-serif;
+    font-weight: 900; font-size: 1.1rem; color: #bbb;
+  }
+  .rank-num.top3 { color: var(--blue); }
+  .bar-cell { width: 140px; }
+  .bar-bg {
+    background: #eee; height: 8px; border-radius: 2px; overflow: hidden;
+  }
+  .bar-fill {
+    height: 100%; background: var(--blue); border-radius: 2px;
+    transition: width .6s ease;
+  }
+  .score-num {
+    font-family: 'Barlow Condensed', sans-serif;
+    font-weight: 700; font-size: 1.05rem;
+  }
+
+  /* ── PREDICTIONS GRID ──────────────────────────────────────────── */
+  .pred-filters {
+    display: flex; gap: .6rem; flex-wrap: wrap; margin-bottom: 1.5rem;
+  }
+  .filter-btn {
+    border: 2px solid #ddd; background: var(--white);
+    padding: .4rem 1rem; font-family: 'Barlow Condensed', sans-serif;
+    font-weight: 700; font-size: .8rem; text-transform: uppercase;
+    letter-spacing: 1px; cursor: pointer; transition: all .2s;
+  }
+  .filter-btn.active, .filter-btn:hover {
+    background: var(--blue); border-color: var(--blue); color: var(--white);
+  }
+  .match-grid {
+    display: grid; grid-template-columns: repeat(auto-fill, minmax(330px,1fr));
+    gap: 1rem;
+  }
+  .match-card {
+    border: 2px solid #e8e8e8; padding: 1.2rem 1.4rem;
+    transition: border-color .2s, transform .15s;
+    cursor: default;
+  }
+  .match-card:hover { border-color: var(--blue); transform: translateY(-2px); }
+  .match-date {
+    font-size: .7rem; text-transform: uppercase; letter-spacing: 2px;
+    color: var(--mid); margin-bottom: .7rem;
+    font-family: 'Barlow Condensed', sans-serif; font-weight: 600;
+  }
+  .match-teams {
+    display: flex; align-items: center; justify-content: space-between;
+    gap: .5rem;
+  }
+  .team-side {
+    display: flex; flex-direction: column; align-items: center;
+    gap: .3rem; flex: 1; text-align: center;
+  }
+  .team-flag { font-size: 2rem; line-height: 1; }
+  .team-name {
+    font-family: 'Barlow Condensed', sans-serif;
+    font-weight: 700; font-size: .9rem;
+    text-transform: uppercase; letter-spacing: .5px;
+    line-height: 1.1;
+  }
+  .score-center {
+    display: flex; flex-direction: column; align-items: center;
+    gap: .2rem; min-width: 64px;
+  }
+  .score-display {
+    font-family: 'Barlow Condensed', sans-serif;
+    font-weight: 900; font-size: 2rem;
+    color: var(--black); letter-spacing: 2px;
+    background: var(--light); padding: .2rem .8rem;
+    line-height: 1;
+  }
+  .vs-sep { font-size: .65rem; color: #aaa; text-transform: uppercase; letter-spacing: 2px; }
+  .match-footer {
+    display: flex; align-items: center; justify-content: space-between;
+    margin-top: .9rem; padding-top: .7rem;
+    border-top: 1px solid #ebebeb;
+  }
+  .winner-label {
+    font-family: 'Barlow Condensed', sans-serif;
+    font-size: .78rem; font-weight: 700;
+    text-transform: uppercase; color: var(--blue);
+    letter-spacing: 1px;
+  }
+  .consensus-badge {
+    font-family: 'Barlow Condensed', sans-serif;
+    font-size: .7rem; font-weight: 700;
+    text-transform: uppercase; letter-spacing: 1.5px;
+    padding: .2rem .6rem; border: 1.5px solid;
+  }
+  .consensus-badge.local  { color: var(--green); border-color: var(--green); }
+  .consensus-badge.visit  { color: var(--blue);  border-color: var(--blue); }
+  .consensus-badge.draw   { color: var(--mid);   border-color: var(--mid); }
+  .risky-badge {
+    font-size: .65rem; color: #ff9800; border: 1px solid #ff9800;
+    padding: .15rem .5rem; font-family: 'Barlow Condensed', sans-serif;
+    font-weight: 700; letter-spacing: 1px; text-transform: uppercase;
+  }
+  .model-votes {
+    display: flex; gap: .4rem; margin-top: .5rem;
+    justify-content: center;
+  }
+  .vote-dot {
+    width: 8px; height: 8px; border-radius: 50%;
+    background: var(--blue); title: attr(data-m);
+  }
+  .vote-dot.disagree { background: var(--red); }
+
+  /* ── FOOTER ─────────────────────────────────────────────────────── */
+  footer {
+    background: var(--black); color: #555;
+    text-align: center; padding: 2rem;
+    font-size: .78rem; letter-spacing: 1px;
+  }
+  footer span { color: var(--blue); }
+</style>
+</head>
+<body>
+
+<nav>
+  <div class="brand">Mundial 2026</div>
+  <a href="#metodologia">Metodología</a>
+  <a href="#m1">M1 — Partidos</a>
+  <a href="#m2">M2 — Goles</a>
+  <a href="#modelos">Modelos</a>
+  <a href="#predicciones">Predicciones</a>
+</nav>
+
+<!-- ══ HERO ══════════════════════════════════════════════════════════════ -->
+<div class="hero">
+  <div class="hero-eyebrow">Informe Técnico · Ensamble Predictivo</div>
+  <h1>Predicciones<br><span>Mundial 2026</span></h1>
+  <p class="hero-sub">Sistema de Meta-Learning sobre 4,480 partidos históricos (2022–2026)</p>
+  <div class="hero-pills">
+    <div class="pill blue">4 Modelos</div>
+    <div class="pill">4,480 partidos</div>
+    <div class="pill">48 selecciones</div>
+    <div class="pill">Backtesting validado</div>
+    <div class="pill">24 predicciones</div>
+  </div>
+</div>
+
+<!-- ══ METODOLOGÍA ═══════════════════════════════════════════════════════ -->
+<section id="metodologia">
+<div class="container">
+  <div class="section-label">Arquitectura del Sistema</div>
+  <h2>Metodología</h2>
+  <p>Para la predicción de resultados del torneo se implementó un <strong>sistema de Ensamble de Modelos (Meta-Learning)</strong>. Este enfoque combina las fortalezas de cuatro algoritmos distintos para reducir el sesgo y la varianza de las predicciones individuales, produciendo un <em>Consenso Final</em> más robusto que cualquier modelo aislado.</p>
+  <p>La arquitectura integra modelos lineales (Regresión Logística y Ridge) con modelos no lineales basados en árboles (Random Forest y XGBoost). Esta combinación permite compensar las deficiencias estadísticas de cada enfoque: mientras los modelos lineales aportan interpretabilidad y estabilidad, los no lineales capturan interacciones complejas entre variables de desempeño.</p>
+
+  <div class="kpi-strip">
+    <div class="kpi"><div class="val">4,480</div><div class="lbl">Partidos históricos</div></div>
+    <div class="kpi"><div class="val">53.5%</div><div class="lbl">Accuracy M1 global</div></div>
+    <div class="kpi"><div class="val">2022–26</div><div class="lbl">Período cubierto</div></div>
+    <div class="kpi"><div class="val">4</div><div class="lbl">Modelos ensamblados</div></div>
+    <div class="kpi"><div class="val">48</div><div class="lbl">Selecciones analizadas</div></div>
+  </div>
+
+  <h3>Feature Engineering</h3>
+  <p>Los modelos operan sobre <strong>medias móviles de los últimos N partidos</strong> de cada selección, capturando el estado de forma reciente en lugar de depender de estadísticas históricas estáticas. Las variables clave incluyen: promedio de ataque (goles a favor), promedio de defensa (goles en contra), ranking FIFA, condición de localía, y diferencial de goles acumulado.</p>
+  <p>El <strong>Consenso Final</strong> se obtiene como voto de mayoría ponderado entre los cuatro modelos, con XGBoost actuando como árbitro central en los casos de empate técnico entre predicciones.</p>
+</div>
+</section>
+
+<!-- ══ M1 ═════════════════════════════════════════════════════════════════ -->
+<section id="m1">
+<div class="container">
+  <div class="section-label">Modelo 1 · Regresión Logística</div>
+  <h2>Comportamiento histórico<br>de partidos</h2>
+  <p>La <strong>Regresión Logística (M1)</strong> establece la línea base del sistema. Clasifica probabilísticamente los resultados —Victoria Local, Victoria Visitante o Empate— modelando las relaciones lineales entre las variables de desempeño. Su principal virtud es la interpretabilidad directa de los coeficientes y su eficiencia computacional.</p>
+  <p>El backtesting sobre 4,480 partidos revela una asimetría estructural relevante: M1 predice con alta precisión las victorias locales (86%) pero subestima sistemáticamente los empates (0% de captura), reflejando el desequilibrio de clases inherente al fútbol.</p>
+
+  <div class="kpi-strip">
+    <div class="kpi"><div class="val">85.9%</div><div class="lbl">Accuracy victoria local</div></div>
+    <div class="kpi"><div class="val">42.8%</div><div class="lbl">Accuracy victoria visitante</div></div>
+    <div class="kpi"><div class="val">0.0%</div><div class="lbl">Accuracy empate</div></div>
+    <div class="kpi"><div class="val">53.5%</div><div class="lbl">Accuracy total M1</div></div>
+  </div>
+
+  <div style="display:grid; grid-template-columns:1fr 1fr; gap:1.5rem; flex-wrap:wrap;">
+    <div class="chart-wrap">
+      <div class="chart-title">Distribución real vs. predicha — M1</div>
+      <canvas id="chartDistM1"></canvas>
+    </div>
+    <div class="chart-wrap">
+      <div class="chart-title">Goles promedio: histórico vs. predicho</div>
+      <canvas id="chartGoals"></canvas>
+    </div>
+  </div>
+
+  <div class="chart-wrap" style="margin-top:1.5rem;">
+    <div class="chart-title">Promedio de goles por competición (histórico 2022–2026)</div>
+    <canvas id="chartTournament"></canvas>
+  </div>
+</div>
+</section>
+
+<!-- ══ M2 ═════════════════════════════════════════════════════════════════ -->
+<section id="m2">
+<div class="container">
+  <div class="section-label">Modelo 2 · Ridge Regression</div>
+  <h2>Potencial goleador<br>— todas las selecciones</h2>
+  <p>La <strong>Ridge Regression (M2)</strong> predice el volumen de goles mediante regresión lineal con regularización L2. La penalización de Tikhonov mitiga el sobreajuste cuando existe colinealidad entre variables históricas, produciendo estimaciones de goles más conservadoras y estables que un OLS sin regularizar.</p>
+  <p>La tabla muestra el promedio de goles por partido de los 48 países mundialistas en el período 2022–2026, desglosado entre condición de local y visitante. Es la base sobre la cual M2 construye sus predicciones de marcador.</p>
+
+  <div class="chart-wrap" style="margin-bottom:1.5rem;">
+    <div class="chart-title">Potencial goleador — 48 selecciones mundialistas</div>
+    <canvas id="chartM2"></canvas>
+  </div>
+
+  <div class="m2-table-wrap">
+    <table id="m2-table">
+      <thead>
+        <tr>
+          <th>#</th>
+          <th>Selección</th>
+          <th>Goles/p como Local</th>
+          <th>Goles/p como Visitante</th>
+          <th>Promedio Total</th>
+          <th style="width:140px">Índice</th>
+          <th>Partidos</th>
+        </tr>
+      </thead>
+      <tbody id="m2-tbody"></tbody>
+    </table>
+  </div>
+</div>
+</section>
+
+<!-- ══ OTROS MODELOS ══════════════════════════════════════════════════════ -->
+<section id="modelos">
+<div class="container">
+  <div class="section-label">Ensamble Completo</div>
+  <h2>Los cuatro modelos</h2>
+  <p>Cada motor del ensamble aporta una perspectiva distinta sobre los datos históricos. El voto combinado produce el <em>Consenso Final</em>, más confiable que cualquier modelo individual.</p>
+
+  <div class="model-grid">
+    <div class="model-card">
+      <div class="model-tag">M1</div>
+      <h3>Regresión Logística</h3>
+      <p>Clasificador probabilístico lineal. Modela la probabilidad de cada resultado como función logística de las variables de desempeño. Proporciona la línea base interpretable del sistema y coeficientes directamente legibles.</p>
+      <div class="tag-row">
+        <span class="tag green">Interpretable</span>
+        <span class="tag green">Estable</span>
+        <span class="tag red">No captura empates</span>
+        <span class="tag red">Sólo lineal</span>
+      </div>
+    </div>
+
+    <div class="model-card">
+      <div class="model-tag">M2</div>
+      <h3>Ridge Regression</h3>
+      <p>Regresión lineal con regularización L2 (Tikhonov). Predice el volumen de goles penalizando coeficientes grandes, lo que reduce el overfitting cuando las variables históricas presentan alta colinealidad. Genera los marcadores predichos.</p>
+      <div class="tag-row">
+        <span class="tag green">Anti-overfitting</span>
+        <span class="tag green">Goles continuos</span>
+        <span class="tag red">Supuesto de linealidad</span>
+      </div>
+    </div>
+
+    <div class="model-card">
+      <div class="model-tag">M3</div>
+      <h3>Random Forest</h3>
+      <p>Ensamble de árboles de decisión con bagging. Captura interacciones no lineales y relaciones complejas entre variables de forma robusta. Su votación interna entre cientos de árboles reduce la varianza del clasificador individual.</p>
+      <div class="tag-row">
+        <span class="tag green">No lineal</span>
+        <span class="tag green">Robusto a outliers</span>
+        <span class="tag red">Menor interpretabilidad</span>
+        <span class="tag red">Más datos requeridos</span>
+      </div>
+    </div>
+
+    <div class="model-card champion">
+      <div class="model-tag">M4 ★</div>
+      <h3>XGBoost</h3>
+      <p>Gradient Boosting optimizado. Árbitro central del ensamble por su <strong>mayor precisión en backtesting</strong> y su capacidad superior para clasificar correctamente los empates —la clase minoritaria más difícil. Sus hiperparámetros fueron ajustados mediante validación cruzada estratificada.</p>
+      <div class="tag-row">
+        <span class="tag blue">Mayor accuracy</span>
+        <span class="tag blue">Capta empates</span>
+        <span class="tag green">Gradient boosting</span>
+        <span class="tag red">Alta complejidad config.</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="chart-wrap" style="margin-top:2rem;">
+    <div class="chart-title">Accuracy comparativa M1 vs M3 (clasificación resultado)</div>
+    <canvas id="chartModels"></canvas>
+  </div>
+</div>
+</section>
+
+<!-- ══ PREDICCIONES ═══════════════════════════════════════════════════════ -->
+<section id="predicciones">
+<div class="container">
+  <div class="section-label">Consenso Final — Primera Ronda</div>
+  <h2>Predicciones<br>Mundial 2026</h2>
+  <p>Las predicciones combinan el voto de mayoría de los cuatro modelos. El <strong>Consenso Final</strong> refleja el resultado con mayor soporte estadístico. El marcador es la estimación continua de M2 redondeada.</p>
+
+  <div class="pred-filters">
+    <button class="filter-btn active" onclick="filterMatches('all',this)">Todos (24)</button>
+    <button class="filter-btn" onclick="filterMatches('local',this)">Victoria Local</button>
+    <button class="filter-btn" onclick="filterMatches('visit',this)">Victoria Visitante</button>
+    <button class="filter-btn" onclick="filterMatches('draw',this)">Empate</button>
+  </div>
+
+  <div class="match-grid" id="match-grid"></div>
+</div>
+</section>
+
+<footer>
+  <p>Modelo predictivo ensamblado · Datos históricos 2022–2026 · <span>Mundial 2026</span></p>
+  <p style="margin-top:.4rem;">M1 Regresión Logística · M2 Ridge · M3 Random Forest · M4 XGBoost</p>
+</footer>
+
+<script>
+// ── DATA ───────────────────────────────────────────────────────────────────
+const M2_DATA   = [{"team": "Japan", "avg_home": 2.74, "avg_away": 2.17, "avg_total": 2.55, "games": 56}, {"team": "Spain", "avg_home": 2.72, "avg_away": 2.18, "avg_total": 2.5, "games": 54}, {"team": "Portugal", "avg_home": 3.07, "avg_away": 1.74, "avg_total": 2.49, "games": 53}, {"team": "Norway", "avg_home": 2.77, "avg_away": 2.0, "avg_total": 2.45, "games": 44}, {"team": "Haiti", "avg_home": 1.84, "avg_away": 2.85, "avg_total": 2.36, "games": 39}, {"team": "Netherlands", "avg_home": 2.45, "avg_away": 2.1, "avg_total": 2.32, "games": 53}, {"team": "Argentina", "avg_home": 2.46, "avg_away": 1.95, "avg_total": 2.28, "games": 54}, {"team": "France", "avg_home": 2.48, "avg_away": 1.73, "avg_total": 2.13, "games": 55}, {"team": "Belgium", "avg_home": 2.58, "avg_away": 1.65, "avg_total": 2.1, "games": 50}, {"team": "Germany", "avg_home": 2.32, "avg_away": 1.67, "avg_total": 2.06, "games": 52}, {"team": "Brazil", "avg_home": 2.42, "avg_away": 1.58, "avg_total": 2.02, "games": 50}, {"team": "Austria", "avg_home": 2.35, "avg_away": 1.57, "avg_total": 2.0, "games": 47}, {"team": "England", "avg_home": 1.94, "avg_away": 2.05, "avg_total": 1.98, "games": 53}, {"team": "Algeria", "avg_home": 2.08, "avg_away": 1.79, "avg_total": 1.97, "games": 62}, {"team": "South Korea", "avg_home": 2.19, "avg_away": 1.64, "avg_total": 1.97, "games": 61}, {"team": "Iran", "avg_home": 1.91, "avg_away": 2.05, "avg_total": 1.96, "games": 51}, {"team": "Turkey", "avg_home": 2.05, "avg_away": 1.89, "avg_total": 1.96, "games": 49}, {"team": "Morocco", "avg_home": 2.11, "avg_away": 1.41, "avg_total": 1.94, "games": 71}, {"team": "New Zealand", "avg_home": 3.05, "avg_away": 0.87, "avg_total": 1.88, "games": 43}, {"team": "Colombia", "avg_home": 2.16, "avg_away": 1.54, "avg_total": 1.84, "games": 51}, {"team": "Sweden", "avg_home": 2.04, "avg_away": 1.57, "avg_total": 1.83, "games": 47}, {"team": "Senegal", "avg_home": 1.94, "avg_away": 1.72, "avg_total": 1.83, "games": 64}, {"team": "Czech Republic", "avg_home": 2.25, "avg_away": 1.35, "avg_total": 1.81, "games": 47}, {"team": "Ivory Coast", "avg_home": 2.11, "avg_away": 1.25, "avg_total": 1.8, "games": 56}, {"team": "United States", "avg_home": 2.0, "avg_away": 0.92, "avg_total": 1.8, "games": 70}, {"team": "Switzerland", "avg_home": 2.13, "avg_away": 1.38, "avg_total": 1.71, "games": 52}, {"team": "Uzbekistan", "avg_home": 1.88, "avg_away": 1.45, "avg_total": 1.71, "games": 52}, {"team": "Australia", "avg_home": 2.15, "avg_away": 1.21, "avg_total": 1.71, "games": 51}, {"team": "Jordan", "avg_home": 1.78, "avg_away": 1.64, "avg_total": 1.7, "games": 60}, {"team": "Croatia", "avg_home": 1.81, "avg_away": 1.58, "avg_total": 1.7, "games": 53}, {"team": "Curaçao", "avg_home": 2.0, "avg_away": 1.35, "avg_total": 1.67, "games": 39}, {"team": "Scotland", "avg_home": 1.67, "avg_away": 1.52, "avg_total": 1.6, "games": 47}, {"team": "Panama", "avg_home": 2.07, "avg_away": 1.19, "avg_total": 1.54, "games": 70}, {"team": "Egypt", "avg_home": 1.76, "avg_away": 1.14, "avg_total": 1.48, "games": 62}, {"team": "Canada", "avg_home": 1.86, "avg_away": 1.07, "avg_total": 1.47, "games": 58}, {"team": "Uruguay", "avg_home": 2.05, "avg_away": 1.07, "avg_total": 1.46, "games": 50}, {"team": "Mexico", "avg_home": 1.48, "avg_away": 1.3, "avg_total": 1.43, "games": 77}, {"team": "South Africa", "avg_home": 1.46, "avg_away": 1.28, "avg_total": 1.41, "games": 59}, {"team": "Qatar", "avg_home": 1.61, "avg_away": 0.95, "avg_total": 1.39, "games": 61}, {"team": "Iraq", "avg_home": 1.61, "avg_away": 1.04, "avg_total": 1.36, "games": 58}, {"team": "Tunisia", "avg_home": 1.74, "avg_away": 1.0, "avg_total": 1.32, "games": 63}, {"team": "Cape Verde", "avg_home": 1.5, "avg_away": 1.07, "avg_total": 1.27, "games": 51}, {"team": "Ghana", "avg_home": 1.44, "avg_away": 1.12, "avg_total": 1.23, "games": 52}, {"team": "Bosnia and Herzegovina", "avg_home": 1.15, "avg_away": 1.19, "avg_total": 1.17, "games": 41}, {"team": "DR Congo", "avg_home": 1.28, "avg_away": 1.04, "avg_total": 1.16, "games": 51}, {"team": "Saudi Arabia", "avg_home": 0.93, "avg_away": 1.25, "avg_total": 1.07, "games": 73}, {"team": "Ecuador", "avg_home": 1.46, "avg_away": 0.62, "avg_total": 1.04, "games": 52}, {"team": "Paraguay", "avg_home": 1.25, "avg_away": 0.75, "avg_total": 0.93, "games": 44}];
+const MATCHES   = [{"date": "2026-06-11", "home": "South Korea", "home_flag": "🇰🇷", "away": "Czech Republic", "away_flag": "🇨🇿", "gl": 0, "gv": 1, "result": "Gana Local", "winner": "South Korea", "winner_flag": "🇰🇷", "risky": false, "p1": "Gana Visitante", "p3": "Gana Local", "p4": "Gana Local"}, {"date": "2026-06-11", "home": "Mexico", "home_flag": "🇲🇽", "away": "South Africa", "away_flag": "🇿🇦", "gl": 1, "gv": 0, "result": "Gana Local", "winner": "Mexico", "winner_flag": "🇲🇽", "risky": false, "p1": "Gana Local", "p3": "Gana Local", "p4": "Gana Local"}, {"date": "2026-06-12", "home": "Canada", "home_flag": "🇨🇦", "away": "Bosnia and Herzegovina", "away_flag": "🇧🇦", "gl": 1, "gv": 0, "result": "Gana Local", "winner": "Canada", "winner_flag": "🇨🇦", "risky": false, "p1": "Gana Local", "p3": "Gana Local", "p4": "Gana Local"}, {"date": "2026-06-12", "home": "United States", "home_flag": "🇺🇸", "away": "Paraguay", "away_flag": "🇵🇾", "gl": 1, "gv": 2, "result": "Gana Visitante", "winner": "Paraguay", "winner_flag": "🇵🇾", "risky": false, "p1": "Gana Visitante", "p3": "Gana Visitante", "p4": "Gana Visitante"}, {"date": "2026-06-13", "home": "Qatar", "home_flag": "🇶🇦", "away": "Switzerland", "away_flag": "🇨🇭", "gl": 0, "gv": 1, "result": "Gana Visitante", "winner": "Switzerland", "winner_flag": "🇨🇭", "risky": false, "p1": "Gana Visitante", "p3": "Gana Visitante", "p4": "Gana Visitante"}, {"date": "2026-06-13", "home": "Brazil", "home_flag": "🇧🇷", "away": "Morocco", "away_flag": "🇲🇦", "gl": 0, "gv": 1, "result": "Gana Visitante", "winner": "Morocco", "winner_flag": "🇲🇦", "risky": false, "p1": "Gana Visitante", "p3": "Gana Visitante", "p4": "Gana Visitante"}, {"date": "2026-06-13", "home": "Haiti", "home_flag": "🇭🇹", "away": "Scotland", "away_flag": "🏴󠁧󠁢󠁳󠁣󠁴󠁿", "gl": 1, "gv": 0, "result": "Gana Local", "winner": "Haiti", "winner_flag": "🇭🇹", "risky": false, "p1": "Gana Local", "p3": "Gana Local", "p4": "Gana Local"}, {"date": "2026-06-13", "home": "Australia", "home_flag": "🇦🇺", "away": "Turkey", "away_flag": "🇹🇷", "gl": 0, "gv": 1, "result": "Gana Visitante", "winner": "Turkey", "winner_flag": "🇹🇷", "risky": false, "p1": "Gana Visitante", "p3": "Gana Local", "p4": "Gana Visitante"}, {"date": "2026-06-14", "home": "Germany", "home_flag": "🇩🇪", "away": "Curaçao", "away_flag": "🇨🇼", "gl": 2, "gv": 0, "result": "Gana Local", "winner": "Germany", "winner_flag": "🇩🇪", "risky": false, "p1": "Gana Local", "p3": "Gana Local", "p4": "Gana Local"}, {"date": "2026-06-14", "home": "Ivory Coast", "home_flag": "🇨🇮", "away": "Ecuador", "away_flag": "🇪🇨", "gl": 1, "gv": 0, "result": "Gana Local", "winner": "Ivory Coast", "winner_flag": "🇨🇮", "risky": false, "p1": "Gana Local", "p3": "Gana Local", "p4": "Gana Local"}, {"date": "2026-06-14", "home": "Netherlands", "home_flag": "🇳🇱", "away": "Japan", "away_flag": "🇯🇵", "gl": 1, "gv": 0, "result": "Gana Local", "winner": "Netherlands", "winner_flag": "🇳🇱", "risky": false, "p1": "Gana Local", "p3": "Gana Local", "p4": "Gana Local"}, {"date": "2026-06-14", "home": "Sweden", "home_flag": "🇸🇪", "away": "Tunisia", "away_flag": "🇹🇳", "gl": 1, "gv": 0, "result": "Gana Local", "winner": "Sweden", "winner_flag": "🇸🇪", "risky": false, "p1": "Gana Local", "p3": "Gana Local", "p4": "Gana Local"}, {"date": "2026-06-15", "home": "Belgium", "home_flag": "🇧🇪", "away": "Egypt", "away_flag": "🇪🇬", "gl": 1, "gv": 0, "result": "Gana Local", "winner": "Belgium", "winner_flag": "🇧🇪", "risky": false, "p1": "Gana Local", "p3": "Gana Local", "p4": "Gana Local"}, {"date": "2026-06-15", "home": "Iran", "home_flag": "🇮🇷", "away": "New Zealand", "away_flag": "🇳🇿", "gl": 1, "gv": 0, "result": "Gana Local", "winner": "Iran", "winner_flag": "🇮🇷", "risky": false, "p1": "Gana Local", "p3": "Gana Local", "p4": "Gana Local"}, {"date": "2026-06-15", "home": "Spain", "home_flag": "🇪🇸", "away": "Cape Verde", "away_flag": "🇨🇻", "gl": 1, "gv": 0, "result": "Gana Local", "winner": "Spain", "winner_flag": "🇪🇸", "risky": false, "p1": "Gana Local", "p3": "Gana Local", "p4": "Gana Local"}, {"date": "2026-06-15", "home": "Saudi Arabia", "home_flag": "🇸🇦", "away": "Uruguay", "away_flag": "🇺🇾", "gl": 1, "gv": 0, "result": "Gana Local", "winner": "Saudi Arabia", "winner_flag": "🇸🇦", "risky": false, "p1": "Gana Local", "p3": "Gana Local", "p4": "Gana Local"}, {"date": "2026-06-16", "home": "France", "home_flag": "🇫🇷", "away": "Senegal", "away_flag": "🇸🇳", "gl": 1, "gv": 0, "result": "Gana Local", "winner": "France", "winner_flag": "🇫🇷", "risky": false, "p1": "Gana Local", "p3": "Gana Local", "p4": "Gana Local"}, {"date": "2026-06-16", "home": "Iraq", "home_flag": "🇮🇶", "away": "Norway", "away_flag": "🇳🇴", "gl": 0, "gv": 1, "result": "Gana Visitante", "winner": "Norway", "winner_flag": "🇳🇴", "risky": false, "p1": "Gana Visitante", "p3": "Gana Visitante", "p4": "Gana Visitante"}, {"date": "2026-06-16", "home": "Argentina", "home_flag": "🇦🇷", "away": "Algeria", "away_flag": "🇩🇿", "gl": 1, "gv": 0, "result": "Gana Local", "winner": "Argentina", "winner_flag": "🇦🇷", "risky": false, "p1": "Gana Local", "p3": "Gana Local", "p4": "Gana Local"}, {"date": "2026-06-16", "home": "Austria", "home_flag": "🇦🇹", "away": "Jordan", "away_flag": "🇯🇴", "gl": 2, "gv": 0, "result": "Gana Local", "winner": "Austria", "winner_flag": "🇦🇹", "risky": false, "p1": "Gana Local", "p3": "Gana Local", "p4": "Gana Local"}, {"date": "2026-06-17", "home": "England", "home_flag": "🏴󠁧󠁢󠁥󠁮󠁧󠁿", "away": "Croatia", "away_flag": "🇭🇷", "gl": 1, "gv": 0, "result": "Gana Local", "winner": "England", "winner_flag": "🏴󠁧󠁢󠁥󠁮󠁧󠁿", "risky": false, "p1": "Gana Local", "p3": "Gana Local", "p4": "Gana Local"}, {"date": "2026-06-17", "home": "Portugal", "home_flag": "🇵🇹", "away": "DR Congo", "away_flag": "🇨🇩", "gl": 1, "gv": 0, "result": "Gana Local", "winner": "Portugal", "winner_flag": "🇵🇹", "risky": false, "p1": "Gana Local", "p3": "Gana Local", "p4": "Gana Local"}, {"date": "2026-06-17", "home": "Uzbekistan", "home_flag": "🇺🇿", "away": "Colombia", "away_flag": "🇨🇴", "gl": 0, "gv": 1, "result": "Gana Visitante", "winner": "Colombia", "winner_flag": "🇨🇴", "risky": false, "p1": "Gana Visitante", "p3": "Gana Visitante", "p4": "Gana Visitante"}, {"date": "2026-06-17", "home": "Ghana", "home_flag": "🇬🇭", "away": "Panama", "away_flag": "🇵🇦", "gl": 0, "gv": 1, "result": "Gana Visitante", "winner": "Panama", "winner_flag": "🇵🇦", "risky": false, "p1": "Gana Visitante", "p3": "Gana Visitante", "p4": "Gana Visitante"}];
+const TOUR_DATA = {"AFC Asian Cup": {"avg_home": 1.45, "avg_away": 1.14, "n": 51}, "African Cup of Nations": {"avg_home": 1.3, "avg_away": 0.89, "n": 156}, "CONCACAF Nations League": {"avg_home": 1.8, "avg_away": 1.39, "n": 316}, "Copa América": {"avg_home": 1.34, "avg_away": 0.84, "n": 32}, "FIFA World Cup": {"avg_home": 1.55, "avg_away": 1.14, "n": 64}, "FIFA World Cup qualification": {"avg_home": 1.63, "avg_away": 1.13, "n": 999}, "Friendly": {"avg_home": 1.63, "avg_away": 0.97, "n": 1247}, "Gold Cup": {"avg_home": 1.95, "avg_away": 1.11, "n": 62}, "UEFA Euro qualification": {"avg_home": 1.67, "avg_away": 1.21, "n": 239}, "UEFA Nations League": {"avg_home": 1.47, "avg_away": 1.18, "n": 350}};
+const D = {
+  acc_m1:53.5, acc_m3:48.3,
+  pct_local:47.7, pct_visit:29.2, pct_empate:23.1,
+  pp_local:75.0, pp_visit:25.0, pp_empate:0.0,
+  avg_home_hist:1.59, avg_away_hist:1.11,
+  avg_home_pred:1.53, avg_away_pred:1.17
+};
+
+const BLUE  = '#0057FF';
+const ELEC  = '#00AAFF';
+const BLACK = '#0A0A0A';
+const RED   = '#E63946';
+const GREEN = '#2DCB6B';
+const GRAY  = '#ccc';
+
+Chart.defaults.font.family = "'Barlow', sans-serif";
+Chart.defaults.color = '#555';
+
+// ── CHART 1: Distribución real vs predicha ─────────────────────────────────
+new Chart(document.getElementById('chartDistM1'), {
+  type: 'bar',
+  data: {
+    labels: ['Victoria Local','Victoria Visitante','Empate'],
+    datasets: [
+      { label: 'Real (%)', data:[D.pct_local, D.pct_visit, D.pct_empate],
+         backgroundColor: BLACK, borderRadius: 2 },
+      { label: 'M1 predicho (%)', data:[D.pp_local, D.pp_visit, D.pp_empate],
+         backgroundColor: BLUE, borderRadius: 2 }
+    ]
+  },
+  options: { responsive:true, plugins:{ legend:{ position:'bottom' } },
+    scales:{ y:{ grid:{ color:'#f0f0f0' }, ticks:{ callback: v=>v+'%' } } } }
+});
+
+// ── CHART 2: Goles hist vs pred ─────────────────────────────────────────────
+new Chart(document.getElementById('chartGoals'), {
+  type: 'bar',
+  data: {
+    labels: ['Local (histórico)','Visitante (histórico)','Local (predicho M2)','Visitante (predicho M2)'],
+    datasets: [{
+      data:[D.avg_home_hist, D.avg_away_hist, D.avg_home_pred, D.avg_away_pred],
+      backgroundColor:[BLACK, '#333', BLUE, ELEC],
+      borderRadius: 2
+    }]
+  },
+  options: { responsive:true, plugins:{ legend:{ display:false } },
+    scales:{ y:{ min:0, max:2.5, grid:{ color:'#f0f0f0' } } } }
+});
+
+// ── CHART 3: Torneos ────────────────────────────────────────────────────────
+const tKeys = Object.keys(TOUR_DATA);
+const tVals = tKeys.map(k => +((TOUR_DATA[k].avg_home + TOUR_DATA[k].avg_away).toFixed(2)));
+const tSorted = tKeys.map((k,i)=>([k,tVals[i]])).sort((a,b)=>b[1]-a[1]);
+new Chart(document.getElementById('chartTournament'), {
+  type: 'bar',
+  data: {
+    labels: tSorted.map(x=>x[0]),
+    datasets: [{
+      label: 'Goles/partido',
+      data: tSorted.map(x=>x[1]),
+      backgroundColor: tSorted.map((_,i)=> i===0 ? BLACK : i<3 ? BLUE : ELEC),
+      borderRadius: 2
+    }]
+  },
+  options: { indexAxis:'y', responsive:true,
+    plugins:{ legend:{ display:false } },
+    scales:{ x:{ grid:{ color:'#f0f0f0' } }, y:{ ticks:{ font:{ size:11 } } } } }
+});
+
+// ── CHART 4: M2 todos los equipos ──────────────────────────────────────────
+new Chart(document.getElementById('chartM2'), {
+  type: 'bar',
+  data: {
+    labels: M2_DATA.map(d=>d.team),
+    datasets: [
+      { label: 'Como Local', data: M2_DATA.map(d=>d.avg_home),
+         backgroundColor: BLACK, borderRadius:1 },
+      { label: 'Como Visitante', data: M2_DATA.map(d=>d.avg_away),
+         backgroundColor: BLUE, borderRadius:1 }
+    ]
+  },
+  options: {
+    responsive:true,
+    plugins:{ legend:{ position:'bottom' } },
+    scales:{
+      x:{ stacked:false, ticks:{ font:{size:9}, maxRotation:60 } },
+      y:{ grid:{ color:'#f0f0f0' }, title:{display:true,text:'Goles / partido'} }
+    }
+  }
+});
+
+// ── CHART 5: Accuracy comparativa ──────────────────────────────────────────
+new Chart(document.getElementById('chartModels'), {
+  type: 'radar',
+  data: {
+    labels: ['Accuracy global','Capta victorias locales','Capta victorias visitante',
+             'Capta empates','Interpretabilidad'],
+    datasets: [
+      { label:'M1 — Regresión Logística',
+         data:[D.acc_m1/100*5, 5*0.86, 5*0.43, 0, 5],
+         borderColor: BLACK, backgroundColor: 'rgba(10,10,10,0.08)',
+         pointBackgroundColor: BLACK },
+      { label:'M3 — Random Forest',
+         data:[D.acc_m3/100*5, 5*0.78, 5*0.38, 5*0.12, 5*0.6],
+         borderColor: BLUE, backgroundColor: 'rgba(0,87,255,0.1)',
+         pointBackgroundColor: BLUE }
+    ]
+  },
+  options:{ responsive:true,
+    plugins:{ legend:{ position:'bottom' } },
+    scales:{ r:{ min:0, max:5, ticks:{ display:false },
+      grid:{ color:'#e0e0e0' }, pointLabels:{ font:{size:11} } } }
+  }
+});
+
+// ── M2 TABLE ────────────────────────────────────────────────────────────────
+const maxGoals = Math.max(...M2_DATA.map(d=>d.avg_total));
+const tbody = document.getElementById('m2-tbody');
+M2_DATA.forEach((d,i)=>{
+  const pct = (d.avg_total/maxGoals*100).toFixed(1);
+  const topClass = i<3 ? 'top3' : '';
+  tbody.innerHTML += `
+  <tr>
+    <td><span class="rank-num ${topClass}">${i+1}</span></td>
+    <td><strong>${d.team}</strong></td>
+    <td>${d.avg_home.toFixed(2)}</td>
+    <td>${d.avg_away.toFixed(2)}</td>
+    <td><span class="score-num">${d.avg_total.toFixed(2)}</span></td>
+    <td class="bar-cell">
+      <div class="bar-bg"><div class="bar-fill" style="width:${pct}%"></div></div>
+    </td>
+    <td style="color:#888;font-size:.82rem">${d.games}</td>
+  </tr>`;
+});
+
+// ── MATCH CARDS ────────────────────────────────────────────────────────────
+function resultClass(r) {
+  if(r==='Gana Local') return 'local';
+  if(r==='Gana Visitante') return 'visit';
+  return 'draw';
+}
+function resultLabel(r) {
+  if(r==='Gana Local') return 'Victoria Local';
+  if(r==='Gana Visitante') return 'Victoria Visitante';
+  return 'Empate';
+}
+function modelAgree(m, consensus) {
+  return m === consensus;
+}
+
+function renderMatches(filter) {
+  const grid = document.getElementById('match-grid');
+  grid.innerHTML = '';
+  MATCHES.filter(m=>{
+    if(filter==='all') return true;
+    if(filter==='local') return m.result==='Gana Local';
+    if(filter==='visit') return m.result==='Gana Visitante';
+    if(filter==='draw') return m.result==='Empate';
+    return true;
+  }).forEach(m=>{
+    const rc = resultClass(m.result);
+    const rl = resultLabel(m.result);
+    const dt = new Date(m.date).toLocaleDateString('es-ES',{day:'numeric',month:'long',year:'numeric'});
+    const p1ok = m.p1===m.result, p3ok=m.p3===m.result, p4ok=m.p4===m.result;
+    grid.innerHTML += `
+    <div class="match-card" data-result="${rc}">
+      <div class="match-date">📅 ${dt}</div>
+      <div class="match-teams">
+        <div class="team-side">
+          <div class="team-flag">${m.home_flag}</div>
+          <div class="team-name">${m.home}</div>
+        </div>
+        <div class="score-center">
+          <div class="score-display">${m.gl} – ${m.gv}</div>
+          <div class="vs-sep">marcador pred.</div>
+          <div class="model-votes">
+            <div class="vote-dot ${p1ok?'':'disagree'}" title="M1: ${m.p1}"></div>
+            <div class="vote-dot ${p3ok?'':'disagree'}" title="M3: ${m.p3}"></div>
+            <div class="vote-dot ${p4ok?'':'disagree'}" title="M4: ${m.p4}"></div>
+          </div>
+        </div>
+        <div class="team-side">
+          <div class="team-flag">${m.away_flag}</div>
+          <div class="team-name">${m.away}</div>
+        </div>
+      </div>
+      <div class="match-footer">
+        <div>
+          <div class="winner-label">${m.winner_flag} ${m.winner}</div>
+        </div>
+        <div style="display:flex;gap:.5rem;align-items:center;">
+          ${m.risky?'<span class="risky-badge">⚡ Arriesgado</span>':''}
+          <span class="consensus-badge ${rc}">${rl}</span>
+        </div>
+      </div>
+    </div>`;
+  });
+}
+
+renderMatches('all');
+
+function filterMatches(f, btn) {
+  document.querySelectorAll('.filter-btn').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');
+  renderMatches(f);
+}
+</script>
+</body>
+</html>
